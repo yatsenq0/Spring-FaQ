@@ -1,0 +1,139 @@
+## Работа с транзакциями в Spring
+
+Управление транзакциями является важной частью разработки приложений, особенно когда речь идет о работе с базами данных. Spring предоставляет мощные инструменты для управления транзакциями, включая декларативное и программное управление. В этой главе мы рассмотрим, как настроить и использовать транзакции в Spring, а также как интегрировать их с JPA и Hibernate.
+
+### 1. Основы транзакций
+
+Транзакция — это последовательность операций, которые выполняются как единое целое. Если одна из операций не удается, все изменения должны быть отменены. Транзакции должны соответствовать принципам ACID:
+
+- **Atomicity (Атомарность)**: Все операции в рамках транзакции должны быть выполнены полностью или не выполнены вовсе.
+- **Consistency (Согласованность)**: Транзакция должна переводить базу данных из одного согласованного состояния в другое.
+- **Isolation (Изолированность)**: Транзакции должны выполняться независимо друг от друга.
+- **Durability (Надежность)**: Изменения, внесенные транзакцией, должны сохраняться даже в случае сбоя системы.
+
+### 2. Декларативное управление транзакциями
+
+Spring позволяет управлять транзакциями декларативно с помощью аннотации `@Transactional`. Это означает, что вы можете просто аннотировать методы или классы, и Spring будет автоматически управлять транзакциями.
+
+#### 2.1. Настройка
+
+Для использования аннотации `@Transactional` необходимо включить поддержку управления транзакциями в конфигурации приложения:
+
+```java
+import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+@Configuration
+@EnableTransactionManagement
+public class AppConfig {
+    // Другие настройки
+}
+```
+
+#### 2.2. Использование @Transactional
+
+Примените аннотацию `@Transactional` к методам сервиса, которые требуют управления транзакциями:
+
+```java
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class UserService {
+
+    private final UserRepository userRepository;
+
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    @Transactional
+    public User registerUser(User user) {
+        return userRepository.save(user);
+    }
+}
+```
+
+### 3. Программное управление транзакциями
+
+Иногда может потребоваться программное управление транзакциями, например, если вам нужно больше контроля над процессом.
+
+#### 3.1. Использование TransactionTemplate
+
+Вы можете использовать `TransactionTemplate` для выполнения операций внутри транзакции:
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.TransactionTemplate;
+import org.springframework.stereotype.Service;
+
+@Service
+public class PaymentService {
+
+    private final TransactionTemplate transactionTemplate;
+
+    @Autowired
+    public PaymentService(TransactionTemplate transactionTemplate) {
+        this.transactionTemplate = transactionTemplate;
+    }
+
+    public void processPayment(Payment payment) {
+        transactionTemplate.execute(status -> {
+            // Логика обработки платежа
+            return null; // Возвращаем результат
+        });
+    }
+}
+```
+
+### 4. Управление изоляцией и распространением транзакций
+
+Spring позволяет настроить уровень изоляции и способ распространения транзакций.
+
+#### 4.1. Уровень изоляции
+
+Вы можете указать уровень изоляции при использовании аннотации `@Transactional`:
+
+```java
+@Transactional(isolation = Isolation.READ_COMMITTED)
+public void someMethod() {
+    // Логика метода
+}
+```
+
+#### 4.2. Способ распространения
+
+По умолчанию Spring использует способ распространения `REQUIRED`, который создает новую транзакцию, если она не существует, или использует существующую. Вы можете изменить это поведение:
+
+```java
+@Transactional(propagation = Propagation.REQUIRES_NEW)
+public void anotherMethod() {
+    // Логика метода
+}
+```
+
+### 5. Заключение
+
+Управление транзакциями в Spring позволяет разработчикам легко контролировать выполнение операций с базами данных и обеспечивать целостность данных. Используя аннотацию `@Transactional` и другие инструменты Spring, вы можете эффективно управлять транзакциями в своих приложениях.
+
+### 6. Рекомендации по дальнейшему изучению
+
+- Изучите возможности интеграции Spring с другими системами управления базами данных.
+- Ознакомьтесь с тестированием методов с использованием аннотации `@Transactional`.
+- Попробуйте реализовать сложные сценарии управления транзакциями с использованием нескольких источников данных.
+- Исследуйте возможности обработки исключений и откатов в контексте транзакций.
+
+Следуя этим рекомендациям, вы сможете углубить свои знания о работе с транзакциями в Spring и улучшить свои навыки разработки приложений на Java.
+
+Citations:
+[1] https://habr.com/ru/articles/682362/
+[2] https://habr.com/ru/companies/otus/articles/856842/
+[3] https://for-each.dev/lessons/b/-transaction-configuration-with-jpa-and-spring
+[4] https://struchkov.dev/blog/ru/transaction-jdbc-and-spring-boot/
+[5] https://javarush.com/quests/lectures/questspring.level03.lecture03
+[6] https://dzen.ru/a/ZSUNJYmddnTzLodZ
+[7] https://dzen.ru/a/ZZQWWh87oE4WSsEm
+[8] https://docs.spring.io/spring-data/jpa/reference/jpa/transactions.html
+
+---
+Answer from Perplexity: https://www.perplexity.ai/search/glava-iz-300-strok-chto-takoe-9WcTmuznQ.6R5kqMKVn1ng?utm_source=copy_output
