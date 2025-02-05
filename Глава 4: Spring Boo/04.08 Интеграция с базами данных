@@ -1,0 +1,195 @@
+## Интеграция с базами данных в Spring Boot
+
+Интеграция с базами данных является одной из ключевых задач при разработке приложений на Spring Boot. Spring Boot предлагает мощные инструменты для работы с различными типами баз данных, включая реляционные (SQL) и нереляционные (NoSQL). В этой главе мы рассмотрим, как подключить базу данных к приложению Spring Boot, настроить доступ и использовать репозитории для выполнения операций с данными.
+
+### 1. Подключение к базе данных
+
+#### 1.1. Добавление зависимостей
+
+Для работы с базой данных необходимо добавить соответствующие зависимости в файл `pom.xml`. Например, для работы с MySQL нужно добавить следующую зависимость:
+
+```xml
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+</dependency>
+```
+
+Если вы используете PostgreSQL, добавьте:
+
+```xml
+<dependency>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+    <scope>runtime</scope>
+</dependency>
+```
+
+#### 1.2. Настройка подключения
+
+После добавления зависимостей необходимо настроить подключение к базе данных в файле `application.properties` или `application.yml`. Пример настройки для MySQL в `application.properties`:
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/mydb
+spring.datasource.username=root
+spring.datasource.password=secret
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+```
+
+Для PostgreSQL:
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/mydb
+spring.datasource.username=myuser
+spring.datasource.password=mypassword
+spring.datasource.driver-class-name=org.postgresql.Driver
+```
+
+### 2. Использование Spring Data JPA
+
+Spring Data JPA упрощает работу с базами данных, предоставляя удобный интерфейс для выполнения операций CRUD (создание, чтение, обновление, удаление).
+
+#### 2.1. Создание сущности
+
+Создайте класс-сущность, который будет представлять таблицу в базе данных:
+
+```java
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String email;
+
+    // Геттеры и сеттеры
+}
+```
+
+#### 2.2. Создание репозитория
+
+Создайте интерфейс репозитория, который будет использоваться для доступа к данным:
+
+```java
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
+}
+```
+
+### 3. Использование репозитория в сервисе
+
+Теперь создадим сервисный класс, который будет использовать репозиторий для выполнения операций с данными.
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class UserService {
+
+    private final UserRepository userRepository;
+
+    @Autowired
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+
+    public User save(User user) {
+        return userRepository.save(user);
+    }
+
+    public void deleteById(Long id) {
+        userRepository.deleteById(id);
+    }
+}
+```
+
+### 4. Создание контроллера
+
+Создайте контроллер для обработки HTTP-запросов и взаимодействия с сервисом.
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/users")
+public class UserController {
+
+    private final UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @GetMapping
+    public List<User> getAllUsers() {
+        return userService.findAll();
+    }
+
+    @PostMapping
+    public User createUser(@RequestBody User user) {
+        return userService.save(user);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable Long id) {
+        userService.deleteById(id);
+    }
+}
+```
+
+### 5. Запуск приложения
+
+Чтобы запустить приложение, выполните команду:
+
+```bash
+mvn spring-boot:run
+```
+
+Теперь ваше приложение будет доступно по адресу `http://localhost:8080/users`.
+
+### 6. Заключение
+
+Интеграция с базами данных в Spring Boot позволяет быстро и эффективно работать с данными, используя мощные инструменты Spring Data JPA. Понимание основ настройки подключения к базе данных и использования репозиториев поможет вам создавать более сложные приложения.
+
+### 7. Рекомендации по дальнейшему изучению
+
+- Изучите возможности миграций базы данных с помощью Flyway или Liquibase.
+- Ознакомьтесь с тестированием интеграции с базами данных.
+- Попробуйте использовать разные базы данных и изучите их особенности.
+- Исследуйте возможности работы с NoSQL базами данных, такими как MongoDB.
+
+Следуя этим рекомендациям, вы сможете углубить свои знания о работе с базами данных в Spring Boot и улучшить свои навыки разработки Java-приложений.
+
+Citations:
+[1] https://dzen.ru/a/ZSU31e99-2HfN0Da
+[2] https://javarush.com/quests/lectures/questspringboot.level03.lecture00
+[3] https://devmark.ru/article/spring-boot-dao
+[4] https://habr.com/ru/companies/haulmont/articles/454970/
+[5] https://ru.werf.io/guides/java_springboot/200_real_apps/040_db.html
+[6] https://sky.pro/wiki/java/konfiguratsiya-dvukh-istochnikov-dannykh-v-spring-boot/
+[7] https://javarush.com/groups/posts/3093-spring-ehto-nestrashno-ili-kak-podkljuchitjh-bazu-dannihkh-dlja-studencheskogo-proekta-za-5-min
+[8] https://habr.com/ru/companies/haulmont/articles/829782/comments/
+
+---
+Answer from Perplexity: https://www.perplexity.ai/search/glava-iz-300-strok-chto-takoe-9WcTmuznQ.6R5kqMKVn1ng?utm_source=copy_output
